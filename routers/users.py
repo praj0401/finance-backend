@@ -17,36 +17,40 @@ def get_db():
 @router.post("/")
 def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
 
-    # 🔍 Check if email exists
-    existing = db.query(models.User).filter(models.User.email == user.email).first()
-    if existing:
-        raise HTTPException(status_code=400, detail="Email already exists")
+    try:
+        # 🔍 Check if email exists
+        existing = db.query(models.User).filter(models.User.email == user.email).first()
+        if existing:
+            raise HTTPException(status_code=400, detail="Email already exists")
 
-    # 🔐 Validate role FIRST
-    if user.role not in ["admin", "analyst", "viewer"]:
-        raise HTTPException(status_code=400, detail="Invalid role")
+        # 🔐 Validate role FIRST
+        if user.role not in ["admin", "analyst", "viewer"]:
+            raise HTTPException(status_code=400, detail="Invalid role")
 
-    # 🔐 Hash password
-    hashed_password = auth.hash_password(user.password)
+        # 🔐 Hash password
+        hashed_password = auth.hash_password(user.password)
 
-    # 🧑‍💼 Create user
-    new_user = models.User(
-        name=user.name,
-        email=user.email,
-        password=hashed_password,
-        role=user.role,
-        is_active=True
-    )
+        # 🧑‍💼 Create user
+        new_user = models.User(
+            name=user.name,
+            email=user.email,
+            password=hashed_password,
+            role=user.role,
+            is_active=True
+        )
 
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
 
-    return {
-        "message": "User created successfully",
-        "user_id": new_user.id
-    }
+        return {
+            "message": "User created successfully",
+            "user_id": new_user.id
+        }
 
+    except Exception as e:
+        print("🔥 ERROR:", str(e))  # ← THIS WILL SHOW IN RENDER LOGS
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("/login")
