@@ -8,7 +8,7 @@ import re
 class UserCreate(BaseModel):
     name: str = Field(min_length=2, max_length=50)
     email: EmailStr
-    password: str
+    password: str = Field(min_length=6, max_length=72)  # ✅ FIX (bcrypt safe)
     role: str
 
     # 🔐 Validate role
@@ -22,9 +22,6 @@ class UserCreate(BaseModel):
     # 🔐 Password strength validation
     @field_validator("password")
     def validate_password(cls, value):
-        if len(value) < 6:
-            raise ValueError("Password must be at least 6 characters")
-
         if not re.search(r"[A-Z]", value):
             raise ValueError("Password must contain at least one uppercase letter")
 
