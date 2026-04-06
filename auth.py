@@ -9,7 +9,13 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 def hash_password(password: str):
-    password = password[:72]  # ✅ FIX
+    # Ensure string type
+    password = str(password)
+
+    # 🔥 Force-safe truncation (handles all cases)
+    password = password.encode("utf-8")[:72].decode("utf-8", errors="ignore")
+    print("PASSWORD LENGTH:", len(password))
+    print("PASSWORD:", password)
     return pwd_context.hash(password)
 
 
